@@ -1,0 +1,25 @@
+body {
+    display: flex;
+    justify-content: center;
+}
+
+.board {
+    background-color: black;
+    display: inline-block;
+}
+
+
+.row {
+    display: inline-block;
+}
+
+.cell {
+    width: 100px;
+    height: 100px;
+    margin: 5px;
+    background-color: white;
+}
+
+.cell:hover {
+    background-color: rgb(139, 231, 243);
+}
