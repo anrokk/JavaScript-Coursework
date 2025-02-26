@@ -1,3 +1,6 @@
+import { GameState, Direction, ActionType } from "./constants.js";
+
+
 export class GameBrain {
 
     #board = [[], [], [], [], []];

@@ -1,21 +1,366 @@
-export function getInitialBoard(boardState, cellUpdateFn) {
-    let board = document.createElement("div");
-    board.classList.add("board");
+import { GameState, Direction, ActionType } from "./constants.js";
 
-    for (let i = 0; i < 5; i++) {
-        let row = document.createElement("div");
-        row.classList.add("row");
-        for (let j = 0; j < 5; j++) {
-            let cell = document.createElement("div");
-            cell.classList.add("cell");
 
-            cell.addEventListener("click", (event) => cellUpdateFn(i, j, event));
+let seconds = 0;
+let minutes = 0;
 
-            cell.innerHTML = boardState[i][j] || "&nbsp;";
-            row.appendChild(cell);
+let boardElement = null;
+let gridIndicator = null;
+let statusElement = null;
+let actionButtonsContainer = null;
+
+export function setupInitialUI() {
+    document.body.innerHTML = "";
+
+    const header = document.createElement("header");
+    const title = document.createElement("h1");
+    title.textContent = "TIC-TAC-TWO";
+    header.appendChild(title);
+    document.body.appendChild(header);
+    
+    const modeSelection = document.createElement("div");
+    modeSelection.id = "mode-selection";
+    modeSelection.classList.add("mode-selection");
+
+    const modeTitle = document.createElement("h2");
+    modeTitle.textContent = "Select Mode";
+    modeSelection.appendChild(modeTitle);
+
+    const humanButton = document.createElement("button");
+    humanButton.id = "human-human";
+    humanButton.textContent = "Human vs Human";
+    humanButton.classList.add("mode-button");
+    modeSelection.appendChild(humanButton);
+
+    const aiButton = document.createElement("button");
+    aiButton.id = "human-ai";
+    aiButton.textContent = "Human vs AI";
+    aiButton.classList.add("mode-button");
+    modeSelection.appendChild(aiButton);
+
+    document.body.appendChild(modeSelection);
+
+    const gameContainer = document.createElement("div");
+    gameContainer.id = "game-container";
+    gameContainer.classList.add("game-Container", "hidden");
+
+    const gameInfo = document.createElement("div");
+    gameInfo.classList.add("game-info");
+
+    statusElement = document.createElement("div");
+    statusElement.id = "status";
+    statusElement.classList.add("status");
+    gameInfo.appendChild(statusElement);
+
+    const timerElement = document.createElement("div");
+    timerElement.id = "timer";
+    timerElement.classList.add("timer");
+    timerElement.textContent = "Time: 00:00";
+    gameInfo.appendChild(timerElement);
+
+    gameContainer.appendChild(gameInfo);
+
+    actionButtonsContainer = document.createElement("div");
+    actionButtonsContainer.classList.add("action-buttons");
+
+    const placeButton = document.createElement("button");
+    placeButton.id = "place-button";
+    placeButton.textContent = "Place Piece";
+    placeButton.classList.add("action-button", "active");
+    placeButton.addEventListener("click", () => setActiveAction(ActionType.PLACE));
+    actionButtonsContainer.appendChild(placeButton);
+
+    const moveButton = document.createElement("button");
+    moveButton.id = "move-button";
+    moveButton.textContent = "Move Piece";
+    moveButton.classList.add("action-button");
+    moveButton.addEventListener("click", () => setActiveAction(ActionType.MOVE_PIECE));
+    actionButtonsContainer.appendChild(moveButton);
+    
+    const gridButton = document.createElement("button");
+    gridButton.id = "grid-button";
+    gridButton.textContent = "Move Grid";
+    gridButton.classList.add("action-button");
+    gridButton.addEventListener("click", () => setActiveAction(ActionType.MOVE_GRID));
+    actionButtonsContainer.appendChild(gridButton);
+    
+    gameContainer.appendChild(actionButtonsContainer);
+    
+    const boardContainer = document.createElement("div");
+    boardContainer.classList.add("board-container");
+    
+    boardContainer.innerHTML = `<div id="board-element" class="board"></div>`;
+    
+    const gridControls = document.createElement("div");
+    gridControls.id = "grid-controls";
+    gridControls.classList.add("grid-controls", "hidden");
+    
+    const directions = [
+        { id: "up-left", text: "↖", dir: Direction.UP_LEFT },
+        { id: "up", text: "↑", dir: Direction.UP },
+        { id: "up-right", text: "↗", dir: Direction.UP_RIGHT },
+        { id: "left", text: "←", dir: Direction.LEFT },
+        { id: "center", text: "•", dir: null },
+        { id: "right", text: "→", dir: Direction.RIGHT },
+        { id: "down-left", text: "↙", dir: Direction.DOWN_LEFT },
+        { id: "down", text: "↓", dir: Direction.DOWN },
+        { id: "down-right", text: "↘", dir: Direction.DOWN_RIGHT }
+    ];
+
+    const dirGrid = document.createElement("div");
+    dirGrid.classList.add("direction-grid");
+
+    for (const dir of directions) {
+        const button = document.createElement("button");
+        button.id = `dir-${dir.id}`;
+        button.textContent = dir.text;
+        button.classList.add("direction-button");
+        if (!dir.dir) button.classList.add("center-button");
+        if (dir.dir) {
+            button.dataset.direction = dir.dir;
         }
-        board.appendChild(row);
+        dirGrid.appendChild(button);
     }
 
-    return board;
+    gridControls.appendChild(dirGrid);
+    boardContainer.appendChild(gridControls);
+    
+    gameContainer.appendChild(boardContainer);
+    
+    const gameControls = document.createElement("div");
+    gameControls.classList.add("game-controls");
+    
+    const resetButton = document.createElement("button");
+    resetButton.id = "reset-button";
+    resetButton.textContent = "Reset Game";
+    resetButton.classList.add("control-button");
+    gameControls.appendChild(resetButton);
+    
+    const menuButton = document.createElement("button");
+    menuButton.id = "menu-button";
+    menuButton.textContent = "Back to Menu";
+    menuButton.classList.add("control-button");
+    gameControls.appendChild(menuButton);
+    
+    gameContainer.appendChild(gameControls);
+    
+    const messagesContainer = document.createElement("div");
+    messagesContainer.id = "messages";
+    messagesContainer.classList.add("messages");
+    gameContainer.appendChild(messagesContainer);
+    
+    document.body.appendChild(gameContainer);
 }
+
+export function switchToGameView() {
+    document.getElementById("mode-selection").classList.add("hidden");
+    document.getElementById("game-container").classList.remove("hidden");
+}
+
+export function switchToMenuView() {
+    document.getElementById("game-container").classList.add("hidden");
+    document.getElementById("mode-selection").classList.remove("hidden");
+}
+
+export function createBoard(game, cellClickHandler) {
+    boardElement = document.getElementById("board-element");
+    boardElement.innerHTML = '';
+    
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 5; j++) {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+            cell.dataset.x = i;
+            cell.dataset.y = j;
+            
+            if (game.isCellInActiveGrid(i, j)) {
+                cell.classList.add("active-grid");
+            }
+            
+            if (game.board[i][j]) {
+                cell.textContent = game.board[i][j];
+                cell.classList.add(game.board[i][j].toLowerCase());
+            } else {
+                cell.innerHTML = "&nbsp;";
+            }
+            
+            cell.addEventListener("click", () => {
+                if (game.actionType === ActionType.PLACE || 
+                    (game.actionType === ActionType.MOVE_PIECE && game.selectedPiece !== null)) {
+                    cellClickHandler(i, j);
+                } else if (game.actionType === ActionType.MOVE_PIECE && game.selectedPiece === null) {
+                    if (game.selectPieceToMove(i, j)) {
+                        updateBoard(game);
+                    } else {
+                        showInvalidMoveMessage("Select your own piece to move");
+                    }
+                }
+            });
+            
+            boardElement.appendChild(cell);
+        }
+    }
+}
+
+export function updateBoard(game) {
+    const cells = document.querySelectorAll(".cell");
+    cells.forEach(cell => {
+        const x = parseInt(cell.dataset.x);
+        const y = parseInt(cell.dataset.y);
+
+        cell.classList.remove("active-grid", "selected", "x", "o");
+
+        if (game.isCellInActiveGrid(x, y)) {
+            cell.classList.add("active-grid");
+        }
+
+        if (game.selectedPiece && game.selectedPiece.x === x && game.selectedPiece.y === y) {
+            cell.classList.add("selected");
+        }
+
+        if (game.board[x][y]) {
+            cell.textContent = game.board[x][y];
+            cell.classList.add(game.board[x][y].towLowerCase());
+        } else {
+            cell.innerHTML = "&nbsp;";
+        }
+    });
+
+    clearMessages();
+}
+
+export function updateTimer() {
+    seconds++;
+
+    if (seconds === 60) {
+        seconds = 0;
+        minutes++;
+    }
+
+    const timerElement = document.getElementById("timer");
+    timerElement.textContent = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+export function resetTimer() {
+    seconds = 0;
+    minutes = 0;
+    const timerElement = document.getElementById("timer");
+    timerElement.textContent = "Time: 00:00";
+}
+
+export function updateGameInfo(game) {
+    const statusElement = document.getElementById("status");
+
+    if (game.gameState === GameState.PLAYING) {
+        statusElement.textContent = `Player ${game.currentPlayer}'s turn`;
+    } else if (game.gameState === GameState.X_WINS) {
+        statusElement.textContent = "Player X wins!";
+    } else if (game.gameState === GameState.O_WINS) {
+        statusElement.textContent = "Player O ins!";
+    } else if (game.gameState === GameState.TIE) {
+        statusElement.textContent = "Game ended in a tie!";
+    }
+
+    const actionButtons = document.querySelectorAll(".action-button");
+    actionButtons.forEach(button => button.classList.remove("active"));
+
+    if (game.actionType === ActionType.PLACE) {
+        document.getElementById("place-button").classList.add("active");
+    } else if (game.actionType === ActionType.MOVE_PIECE) {
+        document.getElementById("move-button").classList.add("active");
+    } else if (game.actionType === ActionType.MOVE_GRID) {
+        document.getElementById("grid-button").classList.add("active");
+    }
+
+    const gridControls = document.getElementById("grid-controls");
+    if (game.actionType === ActionType.MOVE_GRID) {
+        gridControls.classList.remove("hidden");
+    } else {
+        gridControls.classList.add("hidden");
+    }
+
+}
+
+
+export function setupGridControls(gridMoveHandler) {
+    const buttons = document.querySelectorAll(".direction-button");
+    buttons.forEach(button => {
+        if (button.dataset.direction) {
+            button.addEventListener("click",() => {
+                gridMoveHandler(button.dataset.direction);
+            });
+        }
+    });
+}
+
+export function showInvalidMoveMessage(message) {
+    const messsagesElement = document.getElementById("messages");
+    messsagesElement.textContent = message;
+
+    setTimeout(() => {
+        clearMessages(); 
+    }, 3000);
+}
+
+export function clearMessages() {
+    const messagesElement = document.getElementById("messages");
+    messagesElement.textContent = "";
+}
+
+export function clearBoard() {
+    if (boardElement) {
+        boardElement.innerHTML = "";
+    }
+}
+
+export function showGameResult(gameState) {
+    let message = "";
+
+    if (gameState === GameState.X_WINS) {
+        message = "Player X wins!";
+    } else if (gameState === GameState.O_WINS) {
+        message = "Player O wins!";
+    } else if (gameState === GameState.TIE) {
+        message = "Game ended in a tie!";
+    }
+
+    const messagesElement = document.getElementById("messages");
+    messagesElement.textContent = message;
+    messagesElement.style.color = "#4CAF50";
+    messagesElement.style.fontWeight = "bold";
+    messagesElement.style.fontSize = "18px";
+}
+
+function setActiveAction(actionType) {
+    const customEvent = new CustomEvent("actionChange", { detail: { actionType}});
+    document.dispatchEvent(customEvent);
+}
+
+
+
+
+
+
+
+
+// export function getInitialBoard(boardState, cellUpdateFn) {
+//     let board = document.createElement("div");
+//     board.classList.add("board");
+
+//     for (let i = 0; i < 5; i++) {
+//         let row = document.createElement("div");
+//         row.classList.add("row");
+//         for (let j = 0; j < 5; j++) {
+//             let cell = document.createElement("div");
+//             cell.classList.add("cell");
+
+//             cell.addEventListener("click", (event) => cellUpdateFn(i, j, event));
+
+//             cell.innerHTML = boardState[i][j] || "&nbsp;";
+//             row.appendChild(cell);
+//         }
+//         board.appendChild(row);
+//     }
+
+//     return board;
+// }
