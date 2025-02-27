@@ -5,7 +5,6 @@ let seconds = 0;
 let minutes = 0;
 
 let boardElement = null;
-let gridIndicator = null;
 let statusElement = null;
 let actionButtonsContainer = null;
 
@@ -158,22 +157,35 @@ function handleGridMove(event) {
     if (document.querySelector(".action-button.active").id !== "grid-button") return;
 
     let direction = null;
-    if (event.key === "ArrowUp" && event.key === "ArrowLeft") {
-        direction = Direction.UP_LEFT;
-    } else if (event.key === "ArrowUp" && event.key === "ArrowRight") {
-        direction = Direction.UP_RIGHT;
-    } else if (event.key === "ArrowDown" && event.key === "ArrowLeft") {
-        direction = Direction.DOWN_LEFT;
-    } else if (event.key === "ArrowDown" && event.key === "ArrowRight") {
-        direction = Direction.DOWN_RIGHT;
-    } else if (event.key === "ArrowUp") {
-        direction = Direction.UP;
-    } else if (event.key === "ArrowDown") {
-        direction = Direction.DOWN;
-    } else if (event.key === "ArrowLeft") {
-        direction = Direction.LEFT;
-    } else if (event.key === "ArrowRight") {
-        direction = Direction.RIGHT;
+    switch (event.key) {
+        case "ArrowUp":
+            direction = Direction.UP;
+            break;
+        case "ArrowDown":
+            direction = Direction.DOWN;
+            break;
+        case "ArrowLeft":
+            direction = Direction.LEFT;
+            break;
+        case "ArrowRight":
+            direction = Direction.RIGHT;
+            break;
+        case "Home":
+        case "7":  
+            direction = Direction.UP_LEFT;
+            break;
+        case "End":
+        case "1":  
+            direction = Direction.DOWN_LEFT;
+            break;
+        case "PageUp":
+        case "9":  
+            direction = Direction.UP_RIGHT;
+            break;
+        case "PageDown":
+        case "3":  
+            direction = Direction.DOWN_RIGHT;
+            break;
     }
 
     if (direction) {
@@ -196,20 +208,20 @@ export function createBoard(game, cellClickHandler) {
     boardElement = document.getElementById("board-element");
     boardElement.innerHTML = '';
     
-    for (let i = 0; i < 5; i++) {
-        for (let j = 0; j < 5; j++) {
+    for (let y = 0; y < 5; y++) {
+        for (let x = 0; x < 5; x++) {
             const cell = document.createElement("div");
             cell.classList.add("cell");
-            cell.dataset.x = i;
-            cell.dataset.y = j;
+            cell.dataset.x = x;
+            cell.dataset.y = y;
             
-            if (game.isCellInActiveGrid(i, j)) {
+            if (game.isCellInActiveGrid(x, y)) {
                 cell.classList.add("active-grid");
             }
             
-            if (game.board[i][j]) {
-                cell.textContent = game.board[i][j];
-                cell.classList.add(game.board[i][j].toLowerCase());
+            if (game.board[x][y]) {
+                cell.textContent = game.board[x][y];
+                cell.classList.add(game.board[x][y].toLowerCase());
             } else {
                 cell.innerHTML = "&nbsp;";
             }
@@ -217,9 +229,9 @@ export function createBoard(game, cellClickHandler) {
             cell.addEventListener("click", () => {
                 if (game.actionType === ActionType.PLACE || 
                     (game.actionType === ActionType.MOVE_PIECE && game.selectedPiece !== null)) {
-                    cellClickHandler(i, j);
+                    cellClickHandler(x, y);
                 } else if (game.actionType === ActionType.MOVE_PIECE && game.selectedPiece === null) {
-                    if (game.selectPieceToMove(i, j)) {
+                    if (game.selectPieceToMove(x, y)) {
                         updateBoard(game);
                     } else {
                         showInvalidMoveMessage("Select your own piece to move");
@@ -238,7 +250,7 @@ export function updateBoard(game) {
         const x = parseInt(cell.dataset.x);
         const y = parseInt(cell.dataset.y);
 
-        cell.classList.remove("active-grid", "selected", "x", "o");
+        cell.classList.remove("active-grid", "selected", "x", "o", "grid-center");
 
         if (game.isCellInActiveGrid(x, y)) {
             cell.classList.add("active-grid");
@@ -286,7 +298,7 @@ export function updateGameInfo(game) {
     } else if (game.gameState === GameState.X_WINS) {
         statusElement.textContent = "Player X wins!";
     } else if (game.gameState === GameState.O_WINS) {
-        statusElement.textContent = "Player O ins!";
+        statusElement.textContent = "Player O wins!";
     } else if (game.gameState === GameState.TIE) {
         statusElement.textContent = "Game ended in a tie!";
     }
@@ -308,16 +320,15 @@ export function updateGameInfo(game) {
     } else {
         gridControls.classList.add("hidden");
     }
-
 }
-
 
 export function setupGridControls(gridMoveHandler) {
     const buttons = document.querySelectorAll(".direction-button");
     buttons.forEach(button => {
         if (button.dataset.direction) {
             button.addEventListener("click", () => {
-                gridMoveHandler(button.dataset.direction);
+                const direction = button.dataset.direction;
+                gridMoveHandler(direction);
             });
         }
     });

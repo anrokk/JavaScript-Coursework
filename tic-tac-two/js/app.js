@@ -65,7 +65,9 @@ function startGame(opponentType) {
         
         if (game.canMoveGrid()) {
             game.moveGrid(direction);
+            
             UI.updateBoard(game);
+            
             UI.updateGameInfo(game);
             
             if (game.gameState !== GameState.PLAYING) {
@@ -87,7 +89,7 @@ function startGame(opponentType) {
                 }, 500);
             }
         } else {
-            UI.showInvalidMoveMessage();
+            UI.showInvalidMoveMessage("Cannot move grid yet - each player needs at least 3 pieces");
         }
     }
     
@@ -114,19 +116,12 @@ function startGame(opponentType) {
     document.addEventListener("gridMove", (event) => {
         gridMoveHandler(event.detail.direction);
     });
+
+    document.addEventListener("actionChange", (event) => {
+        const actionType = event.detail.actionType;
+        game.setActionType(actionType);
+        UI.updateGameInfo(game);
+    });
+
+    UI.showDebugInfo(game);
 }
-
-// let h1 = document.createElement("h1");
-// h1.innerHTML = "TIC-TAC-TWO";
-// document.body.appendChild(h1);
-
-// let game = new GameBrain();
-
-// function cellUpdateFn(x, y, e) {
-//     game.makeAMove(x,y);
-//     e.target.innerHTML = game.board[x][y] || "&nbsp;";
-// }
-
-
-// let board = UI.getInitialBoard(game.board, cellUpdateFn);
-// document.body.appendChild(board);

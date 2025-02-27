@@ -88,21 +88,23 @@ export class GameBrain {
                 newX = Math.min(3, this.#gridPosition.x + 1);
                 break;
             case Direction.UP_LEFT:
-                newY = Math.max(1, this.#gridPosition.y - 1);
                 newX = Math.max(1, this.#gridPosition.x - 1);
+                newY = Math.max(1, this.#gridPosition.y - 1);
                 break;
             case Direction.UP_RIGHT:
-                newY = Math.max(1, this.#gridPosition.y - 1);
                 newX = Math.min(3, this.#gridPosition.x + 1);
+                newY = Math.max(1, this.#gridPosition.y - 1);
                 break;
             case Direction.DOWN_LEFT:
-                newY = Math.min(3, this.#gridPosition.y + 1);
                 newX = Math.max(1, this.#gridPosition.x - 1);
+                newY = Math.min(3, this.#gridPosition.y + 1);
                 break;
             case Direction.DOWN_RIGHT:
-                newY = Math.min(3, this.#gridPosition.y + 1);
                 newX = Math.min(3, this.#gridPosition.x + 1);
+                newY = Math.min(3, this.#gridPosition.y + 1);
                 break;
+            default:
+                return false;
         }
         
         if (newX !== this.#gridPosition.x || newY !== this.#gridPosition.y) {
@@ -121,7 +123,6 @@ export class GameBrain {
             
             if (this.#gameState === GameState.PLAYING) {
                 this.#currentPlayer = this.#currentPlayer === "X" ? "O" : "X";
-                
                 this.updateAvailableActions();
             }
             
@@ -202,7 +203,6 @@ export class GameBrain {
     isCellInActiveGrid(x, y) {
         const gridXStart = this.#gridPosition.x - 1;
         const gridYStart = this.#gridPosition.y - 1;
-
         return x >= gridXStart && x < gridXStart + 3 && y >= gridYStart && y < gridYStart + 3;
     }
 
@@ -253,5 +253,9 @@ export class GameBrain {
     
     get selectedPiece() {
         return this.#selectedPiece;
+    }
+
+    get playerPieces() {
+        return { ...this.#playerPieces };
     }
 }
