@@ -42,7 +42,7 @@ export function setupInitialUI() {
 
     const gameContainer = document.createElement("div");
     gameContainer.id = "game-container";
-    gameContainer.classList.add("game-Container", "hidden");
+    gameContainer.classList.add("game-container", "hidden");
 
     const gameInfo = document.createElement("div");
     gameInfo.classList.add("game-info");
@@ -150,6 +150,36 @@ export function setupInitialUI() {
     gameContainer.appendChild(messagesContainer);
     
     document.body.appendChild(gameContainer);
+
+    document.addEventListener("keydown", handleGridMove);
+}
+
+function handleGridMove(event) {
+    if (document.querySelector(".action-button.active").id !== "grid-button") return;
+
+    let direction = null;
+    if (event.key === "ArrowUp" && event.key === "ArrowLeft") {
+        direction = Direction.UP_LEFT;
+    } else if (event.key === "ArrowUp" && event.key === "ArrowRight") {
+        direction = Direction.UP_RIGHT;
+    } else if (event.key === "ArrowDown" && event.key === "ArrowLeft") {
+        direction = Direction.DOWN_LEFT;
+    } else if (event.key === "ArrowDown" && event.key === "ArrowRight") {
+        direction = Direction.DOWN_RIGHT;
+    } else if (event.key === "ArrowUp") {
+        direction = Direction.UP;
+    } else if (event.key === "ArrowDown") {
+        direction = Direction.DOWN;
+    } else if (event.key === "ArrowLeft") {
+        direction = Direction.LEFT;
+    } else if (event.key === "ArrowRight") {
+        direction = Direction.RIGHT;
+    }
+
+    if (direction) {
+        const customEvent = new CustomEvent("gridMove", { detail: { direction } });
+        document.dispatchEvent(customEvent);
+    }
 }
 
 export function switchToGameView() {
@@ -220,7 +250,7 @@ export function updateBoard(game) {
 
         if (game.board[x][y]) {
             cell.textContent = game.board[x][y];
-            cell.classList.add(game.board[x][y].towLowerCase());
+            cell.classList.add(game.board[x][y].toLowerCase());
         } else {
             cell.innerHTML = "&nbsp;";
         }
@@ -286,10 +316,14 @@ export function setupGridControls(gridMoveHandler) {
     const buttons = document.querySelectorAll(".direction-button");
     buttons.forEach(button => {
         if (button.dataset.direction) {
-            button.addEventListener("click",() => {
+            button.addEventListener("click", () => {
                 gridMoveHandler(button.dataset.direction);
             });
         }
+    });
+
+    document.addEventListener("gridMove", (event) => {
+        gridMoveHandler(event.detail.direction);
     });
 }
 
@@ -326,41 +360,28 @@ export function showGameResult(gameState) {
 
     const messagesElement = document.getElementById("messages");
     messagesElement.textContent = message;
-    messagesElement.style.color = "#4CAF50";
-    messagesElement.style.fontWeight = "bold";
-    messagesElement.style.fontSize = "18px";
+    messagesElement.classList.add("game-result");
 }
 
 function setActiveAction(actionType) {
-    const customEvent = new CustomEvent("actionChange", { detail: { actionType}});
+    const customEvent = new CustomEvent("actionChange", { detail: { actionType } });
     document.dispatchEvent(customEvent);
+
+    const actionButtons = document.querySelectorAll(".action-button");
+    actionButtons.forEach(button => button.classList.remove("active"));
+
+    if (actionType === ActionType.PLACE) {
+        document.getElementById("place-button").classList.add("active");
+    } else if (actionType === ActionType.MOVE_PIECE) {
+        document.getElementById("move-button").classList.add("active");
+    } else if (actionType === ActionType.MOVE_GRID) {
+        document.getElementById("grid-button").classList.add("active");
+    }
+    
+    const gridControls = document.getElementById("grid-controls");
+    if (actionType === ActionType.MOVE_GRID) {
+        gridControls.classList.remove("hidden");
+    } else {
+        gridControls.classList.add("hidden");
+    }
 }
-
-
-
-
-
-
-
-
-// export function getInitialBoard(boardState, cellUpdateFn) {
-//     let board = document.createElement("div");
-//     board.classList.add("board");
-
-//     for (let i = 0; i < 5; i++) {
-//         let row = document.createElement("div");
-//         row.classList.add("row");
-//         for (let j = 0; j < 5; j++) {
-//             let cell = document.createElement("div");
-//             cell.classList.add("cell");
-
-//             cell.addEventListener("click", (event) => cellUpdateFn(i, j, event));
-
-//             cell.innerHTML = boardState[i][j] || "&nbsp;";
-//             row.appendChild(cell);
-//         }
-//         board.appendChild(row);
-//     }
-
-//     return board;
-// }

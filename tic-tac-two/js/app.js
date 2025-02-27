@@ -110,13 +110,11 @@ function startGame(opponentType) {
         UI.clearBoard();
         UI.switchToMenuView();
     });
+
+    document.addEventListener("gridMove", (event) => {
+        gridMoveHandler(event.detail.direction);
+    });
 }
-
-
-
-
-
-
 
 // let h1 = document.createElement("h1");
 // h1.innerHTML = "TIC-TAC-TWO";

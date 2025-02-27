@@ -172,16 +172,15 @@ export class GameBrain {
     }
 
     updateAvailableActions() {
-        if (this.#playerPieces[this.#currentPlayer] < 2) {
+        if (this.#playerPieces[this.#currentPlayer] < 3) {
             this.#actionType = ActionType.PLACE;
-            return;
+        } else {
+            this.#actionType = ActionType.MOVE_PIECE;
         }
-
-        this.#actionType = ActionType.PLACE;
     }
 
     canMoveGrid() {
-        return this.#playerPieces["X"] >= 2 && this.#playerPieces["O"] >= 2;
+        return this.#playerPieces["X"] >= 3 && this.#playerPieces["O"] >= 3;
     }
 
     isValidCellForCurrentAction(x, y) {
