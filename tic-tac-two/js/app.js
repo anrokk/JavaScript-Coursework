@@ -24,7 +24,7 @@ function startGame(opponentType) {
         aiPlayer = new AIPlayer(game);
     }
 
-    const timerInterval = setInterval(() => {
+    let timerInterval = setInterval(() => {
         UI.updateTimer();
     }, 1000);
 
@@ -100,10 +100,14 @@ function startGame(opponentType) {
     document.getElementById("reset-button").addEventListener("click", () => {
         clearInterval(timerInterval);
         UI.resetTimer();
-        UI.clearBoard();
         game.resetGame();
         UI.updateBoard(game);
         UI.updateGameInfo(game);
+        UI.clearMessages();
+        
+        timerInterval = setInterval(() => {
+            UI.updateTimer();
+        }, 1000);
     });
     
     document.getElementById("menu-button").addEventListener("click", () => {
