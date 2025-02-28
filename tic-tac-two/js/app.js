@@ -39,7 +39,7 @@ function startGame(opponentType) {
         
         timerInterval = setInterval(() => {
             const elapsedSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
-            UI.updateTimerDirect(elapsedSeconds);
+            UI.updateTimer(elapsedSeconds);
         }, 1000);
     }
     

@@ -271,21 +271,15 @@ export function updateBoard(game) {
     clearMessages();
 }
 
-export function updateTimer() {
-    seconds++;
-
-    if (seconds === 60) {
-        seconds = 0;
-        minutes++;
-    }
-
+export function updateTimer(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
     const timerElement = document.getElementById("timer");
     timerElement.textContent = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
 export function resetTimer() {
-    seconds = 0;
-    minutes = 0;
     const timerElement = document.getElementById("timer");
     timerElement.textContent = "Time: 00:00";
 }
