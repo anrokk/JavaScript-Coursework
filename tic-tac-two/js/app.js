@@ -1,6 +1,7 @@
 import * as UI from "./ui.js";
 import { GameBrain } from "./game.js";
 import { GameState } from "./constants.js";
+import { AIPlayer } from "./ai.js";
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -24,9 +25,37 @@ function startGame(opponentType) {
         aiPlayer = new AIPlayer(game);
     }
 
-    let timerInterval = setInterval(() => {
-        UI.updateTimer();
-    }, 1000);
+    let timerStartTime = Date.now();
+    let timerInterval = null;
+    
+    function startTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+        
+        timerStartTime = Date.now();
+        
+        UI.resetTimer();
+        
+        timerInterval = setInterval(() => {
+            const elapsedSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
+            UI.updateTimerDirect(elapsedSeconds);
+        }, 1000);
+    }
+    
+    startTimer();
+    
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+    
+    function handleGameEnd() {
+        stopTimer();
+        UI.showGameResult(game.gameState);
+    }
 
     function cellClickHandler(x, y) {
         if (game.gameState !== GameState.PLAYING) return;
@@ -38,8 +67,7 @@ function startGame(opponentType) {
             UI.updateGameInfo(game);
             
             if (game.gameState !== GameState.PLAYING) {
-                clearInterval(timerInterval);
-                UI.showGameResult(game.gameState);
+                handleGameEnd();
                 return;
             }
             
@@ -50,8 +78,7 @@ function startGame(opponentType) {
                     UI.updateGameInfo(game);
                     
                     if (game.gameState !== GameState.PLAYING) {
-                        clearInterval(timerInterval);
-                        UI.showGameResult(game.gameState);
+                        handleGameEnd();
                     }
                 }, 500); 
             }
@@ -71,8 +98,7 @@ function startGame(opponentType) {
             UI.updateGameInfo(game);
             
             if (game.gameState !== GameState.PLAYING) {
-                clearInterval(timerInterval);
-                UI.showGameResult(game.gameState);
+                handleGameEnd();
                 return;
             }
             
@@ -83,8 +109,7 @@ function startGame(opponentType) {
                     UI.updateGameInfo(game);
                     
                     if (game.gameState !== GameState.PLAYING) {
-                        clearInterval(timerInterval);
-                        UI.showGameResult(game.gameState);
+                        handleGameEnd();
                     }
                 }, 500);
             }
@@ -98,20 +123,16 @@ function startGame(opponentType) {
     UI.updateGameInfo(game);
     
     document.getElementById("reset-button").addEventListener("click", () => {
-        clearInterval(timerInterval);
-        UI.resetTimer();
         game.resetGame();
         UI.updateBoard(game);
         UI.updateGameInfo(game);
         UI.clearMessages();
         
-        timerInterval = setInterval(() => {
-            UI.updateTimer();
-        }, 1000);
+        startTimer();
     });
     
     document.getElementById("menu-button").addEventListener("click", () => {
-        clearInterval(timerInterval);
+        stopTimer();
         UI.resetTimer();
         UI.clearBoard();
         UI.switchToMenuView();
