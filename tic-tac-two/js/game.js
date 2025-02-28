@@ -173,7 +173,7 @@ export class GameBrain {
     }
 
     updateAvailableActions() {
-        if (this.#playerPieces[this.#currentPlayer] < 3) {
+        if (this.#playerPieces["X"] < 3 || this.#playerPieces["O"] < 3) {
             this.#actionType = ActionType.PLACE;
         } else {
             this.#actionType = ActionType.MOVE_PIECE;
@@ -185,6 +185,10 @@ export class GameBrain {
     }
 
     isValidCellForCurrentAction(x, y) {
+        if (this.#playerPieces["X"] < 3 || this.#playerPieces["O"] < 3) {
+            return this.#board[x][y] === null && this.isCellInActiveGrid(x, y);
+        }
+        
         if (this.#actionType === ActionType.PLACE) {
             return this.#board[x][y] === null && this.isCellInActiveGrid(x, y);
         }
@@ -222,6 +226,10 @@ export class GameBrain {
     }
 
     setActionType(actionType) {
+        if (actionType === ActionType.MOVE_PIECE && (this.#playerPieces["X"] < 3 || this.#playerPieces["O"] < 3)) {
+            return false;
+        }
+        
         if (actionType === ActionType.MOVE_GRID && !this.canMoveGrid()) {
             return false;
         }
