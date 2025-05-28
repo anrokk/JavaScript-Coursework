@@ -95,44 +95,47 @@ export class GameBrain {
             return false;
         }
 
-        let newX = this.#gridPosition.x;
-        let newY = this.#gridPosition.y;
+        let currentVisualRow = this.#gridPosition.x; 
+        let currentVisualCol = this.#gridPosition.y; 
+
+        let newVisualRow = currentVisualRow;
+        let newVisualCol = currentVisualCol;
 
         switch (direction) {
             case Direction.UP:
-                newY = Math.max(1, this.#gridPosition.y - 1);
+                newVisualRow = Math.max(1, currentVisualRow - 1);
                 break;
             case Direction.DOWN:
-                newY = Math.min(3, this.#gridPosition.y + 1);
+                newVisualRow = Math.min(3, currentVisualRow + 1);
                 break;
             case Direction.LEFT:
-                newX = Math.max(1, this.#gridPosition.x - 1);
+                newVisualCol = Math.max(1, currentVisualCol - 1);
                 break;
             case Direction.RIGHT:
-                newX = Math.min(3, this.#gridPosition.x + 1);
+                newVisualCol = Math.min(3, currentVisualCol + 1);
                 break;
             case Direction.UP_LEFT:
-                newX = Math.max(1, this.#gridPosition.x - 1);
-                newY = Math.max(1, this.#gridPosition.y - 1);
+                newVisualRow = Math.max(1, currentVisualRow - 1); 
+                newVisualCol = Math.max(1, currentVisualCol - 1); 
                 break;
             case Direction.UP_RIGHT:
-                newX = Math.min(3, this.#gridPosition.x + 1);
-                newY = Math.max(1, this.#gridPosition.y - 1);
+                newVisualRow = Math.max(1, currentVisualRow - 1); 
+                newVisualCol = Math.min(3, currentVisualCol + 1); 
                 break;
             case Direction.DOWN_LEFT:
-                newX = Math.max(1, this.#gridPosition.x - 1);
-                newY = Math.min(3, this.#gridPosition.y + 1);
+                newVisualRow = Math.min(3, currentVisualRow + 1); 
+                newVisualCol = Math.max(1, currentVisualCol - 1); 
                 break;
             case Direction.DOWN_RIGHT:
-                newX = Math.min(3, this.#gridPosition.x + 1);
-                newY = Math.min(3, this.#gridPosition.y + 1);
+                newVisualRow = Math.min(3, currentVisualRow + 1); 
+                newVisualCol = Math.min(3, currentVisualCol + 1); 
                 break;
             default:
-                return false; 
+                return false;
         }
 
-        if (newX !== this.#gridPosition.x || newY !== this.#gridPosition.y) {
-            this.#gridPosition = { x: newX, y: newY };
+        if (newVisualRow !== currentVisualRow || newVisualCol !== currentVisualCol) {
+            this.#gridPosition = { x: newVisualRow, y: newVisualCol };
 
             const xWins = this.checkWinCondition("X");
             const oWins = this.checkWinCondition("O");
@@ -147,7 +150,7 @@ export class GameBrain {
 
             if (this.#gameState === GameState.PLAYING) {
                 this.#currentPlayer = this.#currentPlayer === "X" ? "O" : "X";
-                this.updateAvailableActions(); 
+                this.updateAvailableActions();
             }
             return true;
         }

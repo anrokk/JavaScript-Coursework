@@ -156,7 +156,6 @@ export function setupInitialUI(): void {
 
     document.body.appendChild(gameContainer);
 
-    document.addEventListener("keydown", handleGlobalKeyDown);
 }
 
 
@@ -173,35 +172,6 @@ interface ActionChangeDetail {
 
 interface GridMoveDetail {
     direction: Direction;
-}
-
-
-
-function handleGlobalKeyDown(event: KeyboardEvent): void {
-    const gridButton = document.getElementById("grid-button");
-    if (!gridButton || !gridButton.classList.contains("active")) {
-        return; 
-    }
-
-    let direction: Direction | null = null;
-    switch (event.key) {
-        case "ArrowUp": direction = Direction.UP; break;
-        case "ArrowDown": direction = Direction.DOWN; break;
-        case "ArrowLeft": direction = Direction.LEFT; break;
-        case "ArrowRight": direction = Direction.RIGHT; break;
-        case "Home": case "7": direction = Direction.UP_LEFT; break;
-        case "End": case "1": direction = Direction.DOWN_LEFT; break;
-        case "PageUp": case "9": direction = Direction.UP_RIGHT; break;
-        case "PageDown": case "3": direction = Direction.DOWN_RIGHT; break;
-    }
-
-    if (direction) {
-        event.preventDefault(); 
-        const customEvent = new CustomEvent<GridMoveDetail>("gridMove", {
-            detail: { direction }
-        });
-        document.dispatchEvent(customEvent);
-    }
 }
 
 
@@ -372,17 +342,11 @@ export function setupGridControls(onGridMove: GridMoveHandler): void {
     buttons.forEach(button => {
         const htmlButton = button as HTMLButtonElement;
         const direction = htmlButton.dataset.direction as Direction | undefined;
-        if (direction) { 
+        if (direction) {
             htmlButton.addEventListener("click", () => {
+                console.log(`[UI] Direction button clicked. Raw data-direction: "${htmlButton.dataset.direction}". Parsed direction: "${direction}"`);
                 onGridMove(direction);
             });
-        }
-    });
-
-    document.addEventListener("gridMove", (event) => {
-        const customEvent = event as CustomEvent<GridMoveDetail>;
-        if (customEvent.detail && customEvent.detail.direction) {
-            onGridMove(customEvent.detail.direction);
         }
     });
 }

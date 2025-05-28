@@ -88,6 +88,7 @@ function startGame(opponentType: OpponentType) {
 
     
     function gridMoveHandler(direction: Direction): void {
+        console.log(`[App] gridMoveHandler called with direction: "${direction}"`); // LOG 2
         if (game.gameState !== GameState.PLAYING) return;
         if (game.actionType !== ActionType.MOVE_GRID) {
             return;
@@ -160,7 +161,6 @@ function startGame(opponentType: OpponentType) {
             gridMoveHandler(customEvent.detail.direction);
         }
     };
-    document.addEventListener("gridMove", onGridMoveEvent);
 
 
     interface ActionChangeEventDetail { actionType: ActionType; }
