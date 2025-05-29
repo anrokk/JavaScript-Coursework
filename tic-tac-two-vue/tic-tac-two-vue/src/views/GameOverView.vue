@@ -6,7 +6,7 @@ const router = useRouter();
 const gameStore = useGameStore();
 
 const playAgain = () => {
-  gameStore.resetGame();
+  gameStore.initializeGame();
   router.push('/game');
 };
 
@@ -32,5 +32,7 @@ const goToMenu = () => {
 button {
   margin: 10px;
   padding: 10px 15px;
+  font-size: 1em; 
+  cursor: pointer;
 }
 </style>
