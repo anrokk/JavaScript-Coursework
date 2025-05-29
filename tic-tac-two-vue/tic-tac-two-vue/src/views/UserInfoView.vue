@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { UseGameStore } from '@/stores/gameStore';
+import { useGameStore } from '../stores/gameStore';
 
 const router = useRouter();
-const gameStore = UseGameStore();
+const gameStore = useGameStore();
 
 const startGame = () => {
-    gameStore.resetGame();
-    router.push('/game');
-}
+  gameStore.resetGame(); 
+  // gameStore.setOpponentType('human'); // Example if you add opponent type to store
+  router.push('/game');
+};
 
 // const startGameVsAi = () => {
 //   gameStore.resetGame();
 //   // gameStore.setOpponentType('ai');
 //   router.push('/game');
 // };
-
 </script>
 
 <template>

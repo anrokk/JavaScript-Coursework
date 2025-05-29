@@ -10,6 +10,9 @@ for (let i = 0; i < 5; i++) {
 return board;
 }
 
+
+let timerIntervalId: number | null = null;
+
 export const useGameStore = defineStore('game', {
     state: (): GameStoreState => ({
         board: createInitialBoard(),
@@ -72,41 +75,59 @@ export const useGameStore = defineStore('game', {
                 default:
                     return '';
             }
+        },
+
+        formattedElapsedTime(state): string {
+            const minutes = Math.floor(state.elapsedTime / 60);
+            const seconds = state.elapsedTime % 60;
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
     },
 
     actions: {
+
+        initializeGame() {
+            this.resetGame();
+            this.gameState = GameState.PLAYING;
+            this.startTimer();
+        },
+
         resetGame() {
             this.board = createInitialBoard();
             this.gridPosition = { x: 2, y: 2 };
             this.currentPlayer = 'X';
-            this.gameState = GameState.PLAYING;
+            this.gameState = GameState.MENU;
             this.playerPieces = { X: 0, O: 0 };
             this.actionType = ActionType.PLACE;
             this.selectedPiece = null;
+            this.stopTimer();
             this.elapsedTime = 0;
         },
 
         setActionType(newActionType: ActionType) {
             if (this.gameState !== GameState.PLAYING) return false;
-
-            if (newActionType === ActionType.MOVE_PIECE) {
-                if (this.playerPieces.X < 3 || this.playerPieces.O < 3) {
-                    return false; // must have 3 pieces on the board to move a piece
-                }
-            } else if (newActionType === ActionType.MOVE_GRID) {
-                if (!this.canMoveGrid) {
-                    return false; // can't move grid if both player have less than 3 pieces on the board
-                }
-            } else if (newActionType === ActionType.PLACE) {
-                if (this.playerPieces[this.currentPlayer] >= 3) {
-                    return false; // cannot place more than 3 pieces
-                }
-            }
+            if (newActionType === ActionType.MOVE_PIECE && (this.playerPieces.X < 3 || this.playerPieces.O < 3)) return false;
+            if (newActionType === ActionType.MOVE_GRID && !this.canMoveGrid) return false;
+            if (newActionType === ActionType.PLACE && this.playerPieces[this.currentPlayer] >= 3) return false;
 
             this.actionType = newActionType;
             this.selectedPiece = null; // selected piece is null, when changing action type
             return true;
         },
+
+        startTimer() {
+            this.stopTimer();
+            this.elapsedTime = 0;
+            timerIntervalId = window.setInterval(() => {
+                this.elapsedTime++;
+            }, 1000);
+        },
+
+        stopTimer() {
+            if (timerIntervalId !== null) {
+                clearInterval(timerIntervalId);
+                timerIntervalId = null;
+            }
+        }
     }
 });

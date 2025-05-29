@@ -6,9 +6,10 @@ const GameOverView = () => import('../views/GameOverView.vue');
 
 const routes = [
   {
-    path: '/user-info',
+    path: '/',
     name: 'UserInfo',
     component: UserInfoView,
+    alias: '/user-info'
   },
   {
     path: '/game',
