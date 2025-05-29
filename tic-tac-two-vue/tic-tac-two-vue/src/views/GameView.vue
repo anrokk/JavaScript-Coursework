@@ -58,7 +58,6 @@ const resetAndGoToMenu = () => {
     </div>
 
     <div class="debug-controls" style="margin-top: 20px;">
-        <button @click="goToGameOver">Simulate Game Over</button>
         <button @click="resetAndGoToMenu">Reset & Back to Menu</button>
     </div>
 

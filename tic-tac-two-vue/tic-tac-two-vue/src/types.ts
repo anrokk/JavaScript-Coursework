@@ -17,6 +17,8 @@ export interface PlayerPiecesCount {
 
 export type SelectedPieceType = Position | null;
 
+export type OpponentType = "human" | "ai" | null;
+
 export interface GameStoreState {
     board: BoardType;
     gridPosition: Position;
@@ -26,4 +28,5 @@ export interface GameStoreState {
     actionType: ActionType;
     selectedPiece: SelectedPieceType;
     elapsedTime: number;
+    opponentType: OpponentType;
 }

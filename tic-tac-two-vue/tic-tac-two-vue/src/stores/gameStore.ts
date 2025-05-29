@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { GameState, ActionType, Direction, } from '@/constants'; 
-import type { GameStoreState, BoardType, Position, SelectedPieceType, ActiveGridType, BoardCellValue, Player } from '@/types';
+import type { GameStoreState, BoardType, Position, SelectedPieceType, ActiveGridType, BoardCellValue, Player, OpponentType } from '@/types';
+import { performAIMove, type DifficultyLevel } from '@/ai/aiLogic';
 
 function createInitialBoard(): BoardType {
     const board: BoardType = [];
@@ -22,7 +23,8 @@ export const useGameStore = defineStore('game', {
         playerPieces: { X: 0, O: 0 },
         actionType: ActionType.PLACE,
         selectedPiece: null,
-        elapsedTime: 0
+        elapsedTime: 0,
+        opponentType: 'human' // default
     }),
 
     getters: {
@@ -86,8 +88,9 @@ export const useGameStore = defineStore('game', {
 
     actions: {
 
-        initializeGame() {
+        initializeGame(opponent: OpponentType) {
             this.resetGame();
+            this.opponentType = opponent;
             this.gameState = GameState.PLAYING;
             this.startTimer();
         },
@@ -100,6 +103,7 @@ export const useGameStore = defineStore('game', {
             this.playerPieces = { X: 0, O: 0 };
             this.actionType = ActionType.PLACE;
             this.selectedPiece = null;
+            this.opponentType = 'human'; //default
             this.stopTimer();
             this.elapsedTime = 0;
             this._updateAvailableActions();
@@ -175,6 +179,13 @@ export const useGameStore = defineStore('game', {
             if (this.gameState === GameState.PLAYING) {
                 this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
                 this._updateAvailableActions();
+
+                //AI
+                if (this.opponentType === 'ai' && this.currentPlayer === 'O' && this.gameState === GameState.PLAYING){
+                    const aiDifficulty: DifficultyLevel = 1;
+                    performAIMove(aiDifficulty);
+                }
+                //AI
             } else {
                 this.stopTimer(); 
             }
@@ -310,6 +321,13 @@ export const useGameStore = defineStore('game', {
                 if (this.gameState === GameState.PLAYING) {
                     this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
                     this._updateAvailableActions(); 
+
+                    // AI
+                    if (this.opponentType === 'ai' && this.currentPlayer === 'O' && this.gameState === GameState.PLAYING){
+                        const aiDifficulty: DifficultyLevel = 1;
+                        performAIMove(aiDifficulty);
+                    }
+                    //AI
                 } else {
                     this.stopTimer(); 
                 }
