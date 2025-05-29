@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { useGameStore } from '../stores/gameStore';
 import GameStatus from '../components/GameStatus.vue'; 
 import Board from '../components/Board.vue';
+import ActionControls from '../components/ActionControls.vue';
 import { GameState } from '../constants';
 
 const router = useRouter();
@@ -45,8 +46,7 @@ const resetAndGoToMenu = () => {
     </div>
 
     <div class="controls-area">
-      <p>[Action Controls Placeholder]</p>
-
+      <ActionControls />
       <p>[Grid Controls Placeholder]</p>
     </div>
 
@@ -72,6 +72,7 @@ const resetAndGoToMenu = () => {
   flex-direction: column;
   align-items: center;
   gap: 15px;
+  margin-bottom: 20px; 
 }
 button { 
     margin: 5px;

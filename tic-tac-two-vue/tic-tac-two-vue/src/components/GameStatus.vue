@@ -30,6 +30,7 @@ const gameStore = useGameStore();
 }
 
 .timer {
+  margin-left: 50px;
   font-size: 1.1em;
   color: #7f8c8d;
 }
