@@ -33,7 +33,7 @@ const emit = defineEmits(['cell-click']);
 
 const handleClick = () => {
     if (props.isInteractive){
-        emit('cell-click', { row: propps.row, col: props.col });
+        emit('cell-click', { row: props.row, col: props.col });
     }
 }
 </script>

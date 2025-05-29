@@ -227,19 +227,5 @@ export const useGameStore = defineStore('game', {
             this.board = newBoard; 
             this._updateGameStateAfterMove();
         },
-
-        selectPieceToMove(rowIndex: number, colIndex: number) {
-            if (this.gameState !== GameState.PLAYING || this.actionType !== ActionType.MOVE_PIECE) {
-                console.warn("Store: Cannot select piece - not in correct state or action type.");
-                return;
-            }
-
-            if (this.board[rowIndex][colIndex] === this.currentPlayer) {
-                this.selectedPiece = { x: colIndex, y: rowIndex };
-            } else {
-                this.selectedPiece = null; 
-                console.warn("Store: Invalid piece to select.");
-            }
-        },
     }
 });
