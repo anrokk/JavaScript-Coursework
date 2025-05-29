@@ -5,7 +5,8 @@ import { useGameStore } from '../stores/gameStore';
 import GameStatus from '../components/GameStatus.vue'; 
 import Board from '../components/Board.vue';
 import ActionControls from '../components/ActionControls.vue';
-import { GameState } from '../constants';
+import GridControls from '../components/GridControls.vue';
+import { GameState, Direction, ActionType } from '../constants';
 
 const router = useRouter();
 const gameStore = useGameStore();
@@ -25,6 +26,12 @@ watch(() => gameStore.gameState, (newState, oldState) => {
     }
   }
 });
+
+const handleGridMove = (direction: Direction) => {
+  if (gameStore.actionType === ActionType.MOVE_GRID) {
+    gameStore.moveGrid(direction);
+  }
+};
 
 const goToGameOver = () => {
   gameStore.stopTimer();
@@ -47,7 +54,7 @@ const resetAndGoToMenu = () => {
 
     <div class="controls-area">
       <ActionControls />
-      <p>[Grid Controls Placeholder]</p>
+      <GridControls @grid-move="handleGridMove" />
     </div>
 
     <div class="debug-controls" style="margin-top: 20px;">

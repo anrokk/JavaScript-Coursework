@@ -242,5 +242,80 @@ export const useGameStore = defineStore('game', {
                 console.warn("Store: Invalid piece to select.");
             }
         },
+
+        moveGrid(direction: Direction) {
+            if (this.gameState !== GameState.PLAYING) return false;
+            if (this.actionType !== ActionType.MOVE_GRID) {
+                return false;
+            }
+            if (!this.canMoveGrid){
+                return false;
+            }
+            
+            let currentCenterCol = this.gridPosition.x;
+            let currentCenterRow = this.gridPosition.y;
+
+            let newCenterCol = currentCenterCol;
+            let newCenterRow = currentCenterRow;
+
+             switch (direction) {
+                case Direction.UP:
+                    newCenterRow = Math.max(1, currentCenterRow - 1);
+                    break;
+                case Direction.DOWN:
+                    newCenterRow = Math.min(3, currentCenterRow + 1);
+                    break;
+                case Direction.LEFT:
+                    newCenterCol = Math.max(1, currentCenterCol - 1);
+                    break;
+                case Direction.RIGHT:
+                    newCenterCol = Math.min(3, currentCenterCol + 1);
+                    break;
+                case Direction.UP_LEFT:
+                    newCenterRow = Math.max(1, currentCenterRow - 1);
+                    newCenterCol = Math.max(1, currentCenterCol - 1);
+                    break;
+                case Direction.UP_RIGHT:
+                    newCenterRow = Math.max(1, currentCenterRow - 1);
+                    newCenterCol = Math.min(3, currentCenterCol + 1);
+                    break;
+                case Direction.DOWN_LEFT:
+                    newCenterRow = Math.min(3, currentCenterRow + 1);
+                    newCenterCol = Math.max(1, currentCenterCol - 1);
+                    break;
+                case Direction.DOWN_RIGHT:
+                    newCenterRow = Math.min(3, currentCenterRow + 1);
+                    newCenterCol = Math.min(3, currentCenterCol + 1);
+                    break;
+                default:
+                    return false; 
+            }
+            if (newCenterCol !== currentCenterCol || newCenterRow !== currentCenterRow) {
+                this.gridPosition = { x: newCenterCol, y: newCenterRow };
+                console.log(`[Store] Grid moved. New center: Col=${newCenterCol}, Row=${newCenterRow}`);
+
+                // check for win after moving grid
+                const xWins = this._checkWinCondition('X');
+                const oWins = this._checkWinCondition('O');
+
+                if (xWins && oWins) {
+                    this.gameState = GameState.TIE;
+                } else if (xWins) {
+                    this.gameState = GameState.X_WINS;
+                } else if (oWins) {
+                    this.gameState = GameState.O_WINS;
+                }
+
+                // if no win, continue
+                if (this.gameState === GameState.PLAYING) {
+                    this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+                    this._updateAvailableActions(); 
+                } else {
+                    this.stopTimer(); 
+                }
+                return true;
+            }
+            return false; 
+        }
     }
 });
