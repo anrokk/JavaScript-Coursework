@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia';
-import { GameState, ActionType, Direction } from '@/constants'; 
-import type { GameStoreState, BoardType, Position, SelectedPieceType, ActiveGridType, BoardCellValue } from '@/types';
+import { GameState, ActionType, Direction, } from '@/constants'; 
+import type { GameStoreState, BoardType, Position, SelectedPieceType, ActiveGridType, BoardCellValue, Player } from '@/types';
 
 function createInitialBoard(): BoardType {
-const board: BoardType = [];
-for (let i = 0; i < 5; i++) {
-    board[i] = new Array(5).fill(null);
-}
-return board;
+    const board: BoardType = [];
+    for (let i = 0; i < 5; i++) {
+        board[i] = new Array(5).fill(null);
+    }
+    return board;
 }
 
 
@@ -58,7 +58,7 @@ export const useGameStore = defineStore('game', {
             return state.playerPieces.X >= 3 && state.playerPieces.O >= 3;
         },
 
-        gameStatusManager(state): string {
+        gameStatusMessage(state): string {
             switch (state.gameState) {
                 case GameState.PLAYING:
                     return `Player ${state.currentPlayer}'s turn`;
@@ -102,16 +102,22 @@ export const useGameStore = defineStore('game', {
             this.selectedPiece = null;
             this.stopTimer();
             this.elapsedTime = 0;
+            this._updateAvailableActions();
         },
 
         setActionType(newActionType: ActionType) {
             if (this.gameState !== GameState.PLAYING) return false;
-            if (newActionType === ActionType.MOVE_PIECE && (this.playerPieces.X < 3 || this.playerPieces.O < 3)) return false;
-            if (newActionType === ActionType.MOVE_GRID && !this.canMoveGrid) return false;
-            if (newActionType === ActionType.PLACE && this.playerPieces[this.currentPlayer] >= 3) return false;
-
+            if (newActionType === ActionType.MOVE_PIECE && (this.playerPieces.X < 3 || this.playerPieces.O < 3)) {
+                return false;
+            }
+            if (newActionType === ActionType.MOVE_GRID && !this.canMoveGrid) {
+                return false;
+            }
+            if (newActionType === ActionType.PLACE && this.playerPieces[this.currentPlayer] >= 3) {
+                return false;
+            }
             this.actionType = newActionType;
-            this.selectedPiece = null; // selected piece is null, when changing action type
+            this.selectedPiece = null;
             return true;
         },
 
@@ -128,6 +134,112 @@ export const useGameStore = defineStore('game', {
                 clearInterval(timerIntervalId);
                 timerIntervalId = null;
             }
-        }
+        },
+
+        _updateAvailableActions() {
+            if (this.playerPieces.X < 3 || this.playerPieces.O < 3) {
+                if (this.playerPieces[this.currentPlayer] < 3){
+                    this.actionType = ActionType.PLACE;
+                } else {
+                    this.actionType = ActionType.PLACE;
+                }
+            } else {
+                if (this.actionType === ActionType.PLACE){
+                    this.actionType = ActionType.MOVE_PIECE;
+                }
+            }
+            this.selectedPiece = null;
+        },
+
+        _checkWinCondition(player: Player): boolean {
+            const grid = this.activeGrid; 
+            for (let i = 0; i < 3; i++) {
+                if (grid[i][0] === player && grid[i][1] === player && grid[i][2] === player) return true;
+            }
+            for (let j = 0; j < 3; j++) {
+                if (grid[0][j] === player && grid[1][j] === player && grid[2][j] === player) return true;
+            }
+            if (grid[0][0] === player && grid[1][1] === player && grid[2][2] === player) return true;
+            if (grid[0][2] === player && grid[1][1] === player && grid[2][0] === player) return true;
+            return false;
+        },
+
+        _updateGameStateAfterMove() {
+            const xWins = this._checkWinCondition('X');
+            const oWins = this._checkWinCondition('O');
+
+            if (xWins) this.gameState = GameState.X_WINS;
+            else if (oWins) this.gameState = GameState.O_WINS;
+
+            if (this.gameState === GameState.PLAYING) {
+                this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+                this._updateAvailableActions();
+            } else {
+                this.stopTimer(); 
+            }
+        },
+
+        isValidCellForCurrentAction(rowIndex: number, colIndex: number): boolean {
+            if (rowIndex < 0 || rowIndex >= 5 || colIndex < 0 || colIndex >= 5) return false;
+
+            switch (this.actionType) {
+                case ActionType.PLACE:
+                    return this.playerPieces[this.currentPlayer] < 3 &&
+                           this.board[rowIndex][colIndex] === null &&
+                           this.isCellInActiveGrid(rowIndex, colIndex);
+                case ActionType.MOVE_PIECE:
+                    if (this.selectedPiece === null) { 
+                        return this.board[rowIndex][colIndex] === this.currentPlayer;
+                    } else { 
+                        return this.board[rowIndex][colIndex] === null &&
+                               this.isCellInActiveGrid(rowIndex, colIndex);
+                    }
+                case ActionType.MOVE_GRID:
+                    return false; 
+                default:
+                    return false;
+            }
+        },
+
+        makeAMove(rowIndex: number, colIndex: number) {
+            if (this.gameState !== GameState.PLAYING) return;
+            
+            const newBoard = this.board.map(r => [...r]); 
+
+            if (this.actionType === ActionType.PLACE) {
+                if (!(this.playerPieces[this.currentPlayer] < 3 && newBoard[rowIndex][colIndex] === null && this.isCellInActiveGrid(rowIndex, colIndex))) {
+                    console.warn("Store: Invalid placement condition in makeAMove."); return;
+                }
+                newBoard[rowIndex][colIndex] = this.currentPlayer;
+                this.playerPieces[this.currentPlayer]++;
+            } else if (this.actionType === ActionType.MOVE_PIECE && this.selectedPiece) {
+                 if (!(newBoard[rowIndex][colIndex] === null && this.isCellInActiveGrid(rowIndex, colIndex))) {
+                    console.warn("Store: Invalid move destination in makeAMove."); return;
+                 }
+                newBoard[this.selectedPiece.y][this.selectedPiece.x] = null; 
+                newBoard[rowIndex][colIndex] = this.currentPlayer; 
+                this.selectedPiece = null; 
+            } else {
+                console.warn("Store: makeAMove called in an invalid state/actionType or without selectedPiece.");
+                return; 
+            }
+            
+            this.board = newBoard; 
+            this._updateGameStateAfterMove();
+        },
+
+        selectPieceToMove(rowIndex: number, colIndex: number) {
+            if (this.gameState !== GameState.PLAYING || this.actionType !== ActionType.MOVE_PIECE) {
+                console.warn("Store: Cannot select piece - not in correct state or action type.");
+                return;
+            }
+
+            if (this.board[rowIndex][colIndex] === this.currentPlayer) {
+                this.selectedPiece = { x: colIndex, y: rowIndex };
+            } else {
+                this.selectedPiece = null; 
+                console.warn("Store: Invalid piece to select.");
+            }
+        },
     }
 });
