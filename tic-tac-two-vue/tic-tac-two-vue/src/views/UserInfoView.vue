@@ -6,8 +6,7 @@ const router = useRouter();
 const gameStore = useGameStore();
 
 const startGame = () => {
-  gameStore.resetGame(); 
-  // gameStore.setOpponentType('human'); // Example if you add opponent type to store
+  gameStore.initializeGame();
   router.push('/game');
 };
 
@@ -22,7 +21,7 @@ const startGame = () => {
   <div class="user-info-view">
     <h1>Tic-Tac-Two</h1>
     <p>Welcome! Set up your game.</p>
-    <button @click="startGame">Start Game vs Human</button>
+    <button @click="startGame">Start Game</button>
     </div>
 </template>
 
