@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useGameStore } from '../stores/gameStore';
+import type { OpponentType } from '@/types';
 
 const router = useRouter();
 const gameStore = useGameStore();
 
 const playAgain = () => {
-  gameStore.initializeGame();
+  const previousOpponentType = gameStore.opponentType || 'human';
+  gameStore.initializeGame(previousOpponentType);
   router.push('/game');
 };
 
