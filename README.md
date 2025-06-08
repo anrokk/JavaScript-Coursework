@@ -13,8 +13,6 @@ This repository contains multiple implementations of a Tic-Tac-Two game, develop
 - Timer functionality
 - Each version is deployed and publicly accessible
 
----
-
 ## 🕹️ Live Demos
 
 - [Vanilla JavaScript Version](https://enos.itcollege.ee/~anrokk/tic-tac-two)
