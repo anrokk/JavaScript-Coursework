@@ -2,6 +2,8 @@
 
 This repository contains multiple implementations of a Tic-Tac-Two game, developed for my JS course. The goal was to build the game using different technologies while supporting both human and AI gameplay.
 
+Game rules: https://gamescrafters.berkeley.edu/games.php?game=tictactwo
+
 ## 🧠 About the Game
 
 - Standard gameplay
